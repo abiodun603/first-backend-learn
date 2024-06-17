@@ -32,16 +32,13 @@ exports.postAddProduct = (req, res, next) => {
   const price = req.body.price;
   const description = req.body.description;
 
-  // ---- products.push({ title: req.body.title }); -----//
-  // create a new object base of the Product class bluePrint
-  const product = new Product(null, title, imageUrl, price, description);
-  // this will use the save method we defined in the
-  // Product class
-  product
-    .save()
-    .then(() => {
-      res.redirect('/');
-    })
+  Product.create({
+    title: title,
+    price: price,
+    imageUrl: imageUrl,
+    description: description,
+  })
+    .then((result) => console.log(result))
     .catch((err) => console.error(err));
 };
 
