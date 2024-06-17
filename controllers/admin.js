@@ -14,10 +14,10 @@ exports.getAddProduct = (req, res, next) => {
 
 // getAdminProduct
 exports.getAdminProducts = (req, res, next) => {
-  Product.fetchAll()
-    .then(([rows, fieldData]) => {
+  Product.findAll()
+    .then((products) => {
       res.render('admin/products', {
-        prods: rows,
+        prods: products,
         pageTitle: 'Admin Products',
         path: '/admin/products',
       });
@@ -44,41 +44,47 @@ exports.postAddProduct = (req, res, next) => {
 
 exports.postEditProduct = (req, res, next) => {
   const prodId = req.body.productId;
+
   const updatedTitle = req.body.title;
   const updatedPrice = req.body.price;
   const updatedImageUrl = req.body.imageUrl;
   const updatedDesc = req.body.description;
 
-  console.log(prodId, updatedTitle, updatedPrice, updatedImageUrl, updatedDesc);
-
-  const updatedProduct = new Product(
-    prodId,
-    updatedTitle,
-    updatedImageUrl,
-    updatedPrice,
-    updatedDesc
-  );
-  updatedProduct.save();
-
-  res.redirect('/products');
+  Product.findByPk(prodId)
+    .then((product) => {
+      product.title = updatedTitle;
+      product.price = updatedPrice;
+      product.description = updatedDesc;
+      product.imageUrl = updatedImageUrl;
+      return product.save();
+    })
+    .then(() => {
+      res.redirect('/products');
+    })
+    .catch((err) => console.error(err));
 };
 
 // Edit product page
 exports.getEditProduct = (req, res, next) => {
   const editMode = req.query.edit === 'true' ? true : false;
   const prodId = req.params.productId;
-  // if (!editMode) {
-  //   return redirect('/');
-  // }
-  Product.findById(prodId, (product) => {
-    if (!product) return res.redirect('/');
-    res.render('admin/edit-product', {
-      pageTitle: 'Edit Product',
-      path: '/admin/edit-product',
-      editing: editMode,
-      product: product,
-    });
-  });
+
+  Product.findByPk(prodId)
+    .then((product) => {
+      if (!product) {
+        return res.redirect('/');
+      }
+
+      console.log(product);
+
+      res.render('admin/edit-product', {
+        pageTitle: 'Edit Product',
+        path: '/admin/edit-product',
+        editing: editMode,
+        product: product,
+      });
+    })
+    .catch((err) => console.error(err));
 };
 
 exports.postDeleteProduct = (req, res, next) => {
