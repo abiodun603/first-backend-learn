@@ -21,7 +21,7 @@ exports.getProducts = (req, res, next) => {
   Product.fetchAll()
     .then(([rows, fieldData]) => {
       res.render('shop/product-list', {
-        prods: products,
+        prods: rows,
         pageTitle: 'All Products',
         path: '/products',
       });
@@ -31,14 +31,15 @@ exports.getProducts = (req, res, next) => {
 
 exports.getProduct = (req, res, next) => {
   const proId = req.params.productId;
-  Product.findById(proId, (product) => {
-    res.render('shop/product-detail', {
-      product: product,
-      pageTitle: product.title,
-      path: '/products',
-    });
-  });
-  // console.log(productId)
+  Product.findById(proId)
+    .then(([product]) => {
+      res.render('shop/product-detail', {
+        product: product[0],
+        pageTitle: product.title,
+        path: '/products',
+      });
+    })
+    .catch((err) => console.log(err));
 };
 
 // Shop Cart

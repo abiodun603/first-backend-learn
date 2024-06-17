@@ -23,3 +23,9 @@
 .product__description {
     text-align: center;
 }
+
+.centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

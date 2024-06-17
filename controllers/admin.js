@@ -14,13 +14,15 @@ exports.getAddProduct = (req, res, next) => {
 
 // getAdminProduct
 exports.getAdminProducts = (req, res, next) => {
-  Product.fetchAll((products) => {
-    res.render('admin/products', {
-      prods: products,
-      pageTitle: 'Admin Products',
-      path: '/admin/products',
-    });
-  });
+  Product.fetchAll()
+    .then(([rows, fieldData]) => {
+      res.render('admin/products', {
+        prods: rows,
+        pageTitle: 'Admin Products',
+        path: '/admin/products',
+      });
+    })
+    .catch((err) => console.log(err));
 };
 
 // Handle Product Request
@@ -35,8 +37,12 @@ exports.postAddProduct = (req, res, next) => {
   const product = new Product(null, title, imageUrl, price, description);
   // this will use the save method we defined in the
   // Product class
-  product.save();
-  res.redirect('/');
+  product
+    .save()
+    .then(() => {
+      res.redirect('/');
+    })
+    .catch((err) => console.error(err));
 };
 
 exports.postEditProduct = (req, res, next) => {
