@@ -18,6 +18,7 @@ exports.getAdminProducts = (req, res, next) => {
   req.user
     .getProducts()
     .then((products) => {
+      console.log(products);
       res.render('admin/products', {
         prods: products,
         pageTitle: 'Admin Products',
