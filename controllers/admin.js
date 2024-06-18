@@ -14,7 +14,9 @@ exports.getAddProduct = (req, res, next) => {
 
 // getAdminProduct
 exports.getAdminProducts = (req, res, next) => {
-  Product.findAll()
+  // get only currenltly logged in user productts
+  req.user
+    .getProducts()
     .then((products) => {
       res.render('admin/products', {
         prods: products,
@@ -23,6 +25,15 @@ exports.getAdminProducts = (req, res, next) => {
       });
     })
     .catch((err) => console.log(err));
+  // Product.findAll()
+  //   .then((products) => {
+  //     res.render('admin/products', {
+  //       prods: products,
+  //       pageTitle: 'Admin Products',
+  //       path: '/admin/products',
+  //     });
+  //   })
+  //   .catch((err) => console.log(err));
 };
 
 // Handle Product Request
@@ -74,9 +85,12 @@ exports.getEditProduct = (req, res, next) => {
   const editMode = req.query.edit === 'true' ? true : false;
   const prodId = req.params.productId;
 
-  Product.findByPk(prodId)
-    .then((product) => {
-      if (!product) {
+  // edit product that related to what the current loggin user posted
+  req.user
+    .getProducts({ where: { id: prodId } })
+    .then((products) => {
+      const product = products[0];
+      if (!products) {
         return res.redirect('/');
       }
 
@@ -86,10 +100,28 @@ exports.getEditProduct = (req, res, next) => {
         pageTitle: 'Edit Product',
         path: '/admin/edit-product',
         editing: editMode,
-        product: product,
+        product: product.dataValues,
       });
+      console.log(product, 'MY PRODUCT');
     })
     .catch((err) => console.error(err));
+
+  // Product.findByPk(prodId)
+  //   .then((product) => {
+  //     if (!product) {
+  //       return res.redirect('/');
+  //     }
+
+  //     console.log(product);
+
+  //     res.render('admin/edit-product', {
+  //       pageTitle: 'Edit Product',
+  //       path: '/admin/edit-product',
+  //       editing: editMode,
+  //       product: product,
+  //     });
+  //   })
+  //   .catch((err) => console.error(err));
 };
 
 exports.postDeleteProduct = (req, res, next) => {
