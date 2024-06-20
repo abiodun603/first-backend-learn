@@ -1,5 +1,6 @@
 const Product = require('../models/product');
 const Cart = require('../models/cart');
+const Order = require('../models/order');
 
 exports.getIndex = (req, res, next) => {
   // we want to also fetch new Product
@@ -116,12 +117,16 @@ exports.postCart = (req, res, next) => {
         // ---
         const oldQuantity = product.cartItem.quantity;
         newQuantity = oldQuantity + 1;
-
+        console.log('i got here');
         return product;
       }
+      console.log('i got here 1');
+
       return Product.findByPk(prodId);
     })
     .then((product) => {
+      console.log('i got here 2');
+
       return fetchedCart.addProduct(product, {
         through: { quantity: newQuantity },
       });
@@ -140,21 +145,84 @@ exports.getCheckout = (req, res, next) => {
   });
 };
 
+exports.postOrder = (req, res, next) => {
+  let fetchedCart;
+  req.user
+    .getCart()
+    .then((cart) => {
+      fetchedCart = cart;
+      return cart.getProducts();
+    })
+    .then((products) => {
+      return req.user
+        .createOrder()
+        .then((order) => {
+          return order.addProducts(
+            products.map((product) => {
+              product.orderItem = {
+                quantity: product.cartItem.quantity,
+              };
+              return product;
+            })
+          );
+        })
+        .then((result) => {
+          return fetchedCart.setProducts(null);
+          res.redirect('/orders');
+        })
+        .then((result) => {
+          res.redirect('/orders');
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
 exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
 
-  // get prodcut by Id
-  Product.findById(prodId, (product) => {
-    // to delete a product we need the productId and product Price
-    Cart.deleteProduct(prodId, product);
-    res.redirect('/cart');
-  });
+  req.user
+    .getCart()
+    .then((cart) => {
+      return cart.getProducts({ where: { id: prodId } });
+    })
+    .then((products) => {
+      const product = products[0];
+      console.log(product);
+      /** we only want to delete the product
+       * from the inbetween table which is
+       * cartItem
+       * */
+
+      return product.cartItem.destroy();
+    })
+    .then(() => {
+      res.redirect('/cart');
+    })
+    .catch((err) => console.log(err));
 };
 
 // Shop Orders
 exports.getOrders = (req, res, next) => {
-  res.render('shop/orders', {
-    pageTitle: 'Your Orders',
-    path: '/orders',
-  });
+  req.user
+    .getOrders({
+      // telling sequelize if u r fetching order
+      // also fetch related product
+      // and give back an array of orders that also
+      // include the products per order
+      include: ['products'],
+    })
+    .then((orders) => {
+      console.log(orders);
+      res.render('shop/orders', {
+        pageTitle: 'Your Orders',
+        path: '/orders',
+        orders: orders,
+      });
+    })
+    .catch((err) => console.log(err));
 };
