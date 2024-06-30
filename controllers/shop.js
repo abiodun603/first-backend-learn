@@ -1,11 +1,11 @@
 const Product = require('../models/product');
-const Cart = require('../models/cart');
-const Order = require('../models/order');
+// const Cart = require('../models/cart');
+// const Order = require('../models/order');
 
 exports.getIndex = (req, res, next) => {
   // we want to also fetch new Product
   // we want to also fetch new Product
-  Product.findAll()
+  Product.fetchAll()
     .then((products) => {
       res.render('shop/index', {
         prods: products,
@@ -21,7 +21,7 @@ exports.getIndex = (req, res, next) => {
 // Get All Products
 exports.getProducts = (req, res, next) => {
   // we want to also fetch new Product
-  Product.findAll()
+  Product.fetchAll()
     .then((products) => {
       res.render('shop/product-list', {
         prods: products,
