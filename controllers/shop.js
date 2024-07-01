@@ -36,11 +36,12 @@ exports.getProducts = (req, res, next) => {
 
 exports.getProduct = (req, res, next) => {
   const proId = req.params.productId;
-  Product.findAll({ where: { id: proId } })
+  Product.findById(proId)
     .then((products) => {
+      console.log(products);
       res.render('shop/product-detail', {
-        product: products[0],
-        pageTitle: products[0].title,
+        product: products,
+        pageTitle: products.title,
         path: '/products',
       });
     })
