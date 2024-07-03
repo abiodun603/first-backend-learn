@@ -2,20 +2,41 @@ const mongodb = require('mongodb');
 const getDb = require('../util/database').getDb;
 
 class Product {
-  constructor(title, price, description, imageUrl) {
+  constructor(title, price, description, imageUrl, id) {
     this.title = title;
     this.price = price;
     this.description = description;
     this.imageUrl = imageUrl;
+    this._id = new mongodb.ObjectId(id);
   }
 
   save() {
     const db = getDb();
-    return db
-      .collection('products')
-      .insertOne(this)
-      .then((result) => {})
-      .catch((err) => console.log(err));
+    let dbOp;
+
+    if (this._id) {
+      /**
+       * updateOne takes at least two arguments
+       * 1. filter that defines which element or document we want to update
+       * 2. specify how want to update the document
+       */
+
+      //  {
+      //   $set: {title: this.title} ...
+      // }
+
+      dbOp = db.collection('products').updateOne(
+        {
+          _id: this._id,
+        },
+        {
+          $set: this,
+        }
+      );
+    } else {
+      dbOp = db.collection('products').insertOne(this);
+    }
+    return dbOp.then((result) => {}).catch((err) => console.log(err));
   }
 
   static fetchAll() {
@@ -53,6 +74,11 @@ class Product {
         return product;
       })
       .catch((err) => console.log(err));
+  }
+
+  static deleteById(prodId) {
+    const db = getDb();
+    return db.collection('products');
   }
 }
 
