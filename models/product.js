@@ -25,6 +25,8 @@ class Product {
       //   $set: {title: this.title} ...
       // }
 
+      console.log('Update me ');
+
       dbOp = db.collection('products').updateOne(
         {
           _id: this._id,
@@ -34,7 +36,14 @@ class Product {
         }
       );
     } else {
-      dbOp = db.collection('products').insertOne(this);
+      console.log('Save one');
+      dbOp = db.collection('products').insertOne({
+        title: this.title,
+        description: this.description,
+        price: this.price,
+        image: this.imageUrl,
+        url: this.imageUrl,
+      });
     }
     return dbOp.then((result) => {}).catch((err) => console.log(err));
   }
