@@ -62,17 +62,13 @@ exports.getProduct = (req, res, next) => {
 exports.getCart = (req, res, next) => {
   req.user
     .getCart()
-    .then((cart) => {
-      return cart
-        .getProducts()
-        .then((products) => {
-          res.render('shop/cart', {
-            pageTitle: 'Your Cart',
-            path: '/cart',
-            products: products,
-          });
-        })
-        .catch((err) => console.log(err));
+    .then((products) => {
+      console.log(products, 'PRODUCTS');
+      res.render('shop/cart', {
+        pageTitle: 'Your Cart',
+        path: '/cart',
+        products: products,
+      });
     })
     .catch((err) => console.log(err));
   // Cart.getCart((cart) => {
@@ -104,7 +100,8 @@ exports.postCart = (req, res, next) => {
       return req.user.addToCart(product);
     })
     .then((result) => {
-      console.log(result, 'result');
+      res.redirect('/cart');
+      // console.log(result, 'result');
     });
 
   // let fetchedCart;
@@ -196,20 +193,7 @@ exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
 
   req.user
-    .getCart()
-    .then((cart) => {
-      return cart.getProducts({ where: { id: prodId } });
-    })
-    .then((products) => {
-      const product = products[0];
-      console.log(product);
-      /** we only want to delete the product
-       * from the inbetween table which is
-       * cartItem
-       * */
-
-      return product.cartItem.destroy();
-    })
+    .deleteItemFromCart(prodId)
     .then(() => {
       res.redirect('/cart');
     })

@@ -24,23 +24,96 @@ class User {
       });
   }
 
+  // ** ================== //
   addToCart(product) {
-    // const existingCart = this.cart.items.findIndex((cp) => {
-    //   cp._id === product._id;
-    // });
+    console.log(this.cart.items, 'My CART LOG');
+    const existingCartProductIndex = this.cart.items.findIndex((cp) => {
+      return cp.productId.toString() === product._id.toString();
+    });
+
+    let newQuantity = 1;
+    const updatedCartItems = [...this.cart.items];
+
+    if (existingCartProductIndex >= 0) {
+      // newQuantity = this.cart.items[existingCartProductIndex].quantity + 1;
+      // updatedCartItems[existingCartProductIndex].quantity = newQuantity;
+
+      updatedCartItems[existingCartProductIndex].quantity += 1;
+    } else {
+      updatedCartItems.push({
+        productId: new ObjectId(product._id),
+        quantity: newQuantity,
+      });
+    }
 
     const db = getDb();
 
-    const updatedProduct = {
-      item: [{ productId: new ObjectId(product._id), quantity: 1 }],
+    const updatedCart = {
+      items: updatedCartItems,
     };
+    console.log(updatedCart);
+    return db
+      .collection('users')
+      .updateOne(
+        { _id: new ObjectId(this._id) },
+        { $set: { cart: updatedCart } }
+      );
+  }
+
+  getCart() {
+    const db = getDb();
+    // get the all of product id in the cart item
+    const productIds = this.cart.items.map((pid) => {
+      return pid.productId;
+    });
+
+    return db
+      .collection('products')
+      .find({ _id: { $in: productIds } })
+      .toArray()
+      .then((products) => {
+        return products.map((p) => {
+          return {
+            ...p,
+            quantity: this.cart.items.find((item) => {
+              return item.productId.toString() === p._id.toString();
+            }).quantity,
+          };
+        });
+      });
+  }
+
+  deleteItemFromCart(productId) {
+    const updatedCartItems = this.cart.items.filter((item) => {
+      return item.productId.toString() !== productId.toString();
+    });
+
+    const db = getDb();
 
     return db
       .collection('users')
       .updateOne(
         { _id: new ObjectId(this._id) },
-        { $set: { cart: updatedProduct } }
+        { $set: { cart: { items: updatedCartItems } } }
       );
+  }
+
+  addOrder() {
+    const db = getDb();
+
+    return db
+      .collectio('orders')
+      .insertOne(this.cart)
+      .then((result) => {
+        this.cart = { items: [] };
+
+        return db
+          .collection('users')
+          .updateOne(
+            { _id: new ObjectId(this._id) },
+            { $set: { cart: { items: updatedCartItems } } }
+          );
+      });
   }
 
   static findById(userId) {
@@ -50,7 +123,7 @@ class User {
       .collection('users')
       .findOne({ _id: new ObjectId(userId) })
       .then((user) => {
-        console.log(user);
+        // console.log(user);
         return user;
       })
       .catch((err) => console.log(err));

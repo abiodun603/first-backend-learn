@@ -24,7 +24,7 @@ app.use((req, res, next) => {
     .then((user) => {
       // new User allows to use method on the req.user
       req.user = new User(user.username, user.email, user.cart, user._id);
-      console.log(user);
+      // console.log(user);
       next();
     })
     .catch((error) => console.error(error));
