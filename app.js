@@ -37,7 +37,7 @@ app.use(errorController.error);
 
 mongoose
   .connect(
-    'mongodb+srv://abiodun_mastery:Testing123@cluster0.jupgc1f.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0'
+    'mongodb+srv://abiodun_mastery:Testing123@cluster0.jupgc1f.mongodb.net/shop?retryWrites=true&w=majority&appName=Cluster0'
   )
   .then(() => app.listen(3000))
   .catch((err) => console.log(err));
