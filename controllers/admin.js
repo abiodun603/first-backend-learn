@@ -29,7 +29,7 @@ exports.getAdminProducts = (req, res, next) => {
   //     });
   //   })
   //   .catch((err) => console.log(err));
-  Product.fetchAll()
+  Product.find()
     .then((products) => {
       res.render('admin/products', {
         prods: products,
@@ -71,20 +71,20 @@ exports.postEditProduct = (req, res, next) => {
   const updatedImageUrl = req.body.imageUrl;
   const updatedDesc = req.body.description;
 
-  const product = new Product(
-    updatedTitle,
-    updatedPrice,
-    updatedDesc,
-    updatedImageUrl,
-    prodId
-  );
+  Product.findById(prodId)
+    .then((product) => {
+      product.title = updatedTitle;
+      product.description = updatedDesc;
+      product.imageUrl = updatedImageUrl;
+      product.price = updatedPrice;
 
-  product
-    .save()
-    .then(() => {
-      res.redirect('/products');
+      return product.save();
     })
-    .catch((err) => console.error(err));
+    .then((response) => {
+      console.log('Updated product');
+      res.redirect('/admin/products');
+    })
+    .catch((error) => console.log(error));
 };
 
 // Edit product page
