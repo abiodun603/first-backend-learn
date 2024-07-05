@@ -2,10 +2,10 @@ const path = require('path');
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
 const errorController = require('./controllers/error');
 
-const mongoConnect = require('./util/database').mongoConnect;
 const User = require('./models/user');
 const app = express();
 
@@ -35,7 +35,9 @@ app.use(shopRoutes);
 
 app.use(errorController.error);
 
-mongoConnect(() => {
-  // if()
-  app.listen(3000);
-});
+mongoose
+  .connect(
+    'mongodb+srv://abiodun_mastery:Testing123@cluster0.jupgc1f.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0'
+  )
+  .then(() => app.listen(3000))
+  .catch((err) => console.log(err));
