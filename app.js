@@ -20,10 +20,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use((req, res, next) => {
-  User.findById('6687f2ff7ac2dd6d8a98e786')
+  User.findById('668805e4880bc77690dd8ab9')
     .then((user) => {
+      console.log(user);
       // new User allows to use method on the req.user
-      req.user = new User(user.username, user.email, user.cart, user._id);
+      req.user = user;
       // console.log(user);
       next();
     })
