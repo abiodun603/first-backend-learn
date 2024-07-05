@@ -21,6 +21,10 @@ const productSchema = new Schema({
   },
 });
 
+// .model is important in mongoose to
+// connect a name(Blueprint) to a name
+module.exports = mongoose.model('Product', productSchema);
+
 // const mongodb = require('mongodb');
 // const getDb = require('../util/database').getDb;
 
