@@ -19,7 +19,14 @@ const productSchema = new Schema({
     type: String,
     required: true,
   },
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
 });
+
+// ref tell the Schema that is has a relatin with the User model
 
 // .model is important in mongoose to
 // connect a name(Blueprint) to a name
