@@ -3,9 +3,10 @@ const Product = require('../models/product');
 // const Order = require('../models/order');
 
 exports.getIndex = (req, res, next) => {
-  // we want to also fetch new Product
-  // we want to also fetch new Product
-  Product.fetchAll()
+  // find in mongoose works differently from in mongodb
+  // git fetch all data for us if it doesn't exist
+  // accept any data
+  Product.find()
     .then((products) => {
       res.render('shop/index', {
         prods: products,
@@ -21,7 +22,7 @@ exports.getIndex = (req, res, next) => {
 // Get All Products
 exports.getProducts = (req, res, next) => {
   // we want to also fetch new Product
-  Product.fetchAll()
+  Product.find()
     .then((products) => {
       res.render('shop/product-list', {
         prods: products,
