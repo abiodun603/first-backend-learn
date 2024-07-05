@@ -153,40 +153,29 @@ exports.getCheckout = (req, res, next) => {
 };
 
 exports.postOrder = (req, res, next) => {
-  let fetchedCart;
   req.user
-    .getCart()
-    .then((cart) => {
-      fetchedCart = cart;
-      return cart.getProducts();
-    })
-    .then((products) => {
-      return req.user
-        .createOrder()
-        .then((order) => {
-          return order.addProducts(
-            products.map((product) => {
-              product.orderItem = {
-                quantity: product.cartItem.quantity,
-              };
-              return product;
-            })
-          );
-        })
-        .then((result) => {
-          return fetchedCart.setProducts(null);
-          res.redirect('/orders');
-        })
-        .then((result) => {
-          res.redirect('/orders');
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+    .addOrder()
+    .then(() => {
+      res.redirect('/orders');
     })
     .catch((err) => {
       console.log(err);
     });
+};
+
+// Shop Orders
+exports.getOrders = (req, res, next) => {
+  req.user
+    .getOrders()
+    .then((orders) => {
+      console.log(orders);
+      res.render('shop/orders', {
+        pageTitle: 'Your Orders',
+        path: '/orders',
+        orders: orders,
+      });
+    })
+    .catch((err) => console.log(err));
 };
 
 exports.postCartDeleteProduct = (req, res, next) => {
@@ -196,27 +185,6 @@ exports.postCartDeleteProduct = (req, res, next) => {
     .deleteItemFromCart(prodId)
     .then(() => {
       res.redirect('/cart');
-    })
-    .catch((err) => console.log(err));
-};
-
-// Shop Orders
-exports.getOrders = (req, res, next) => {
-  req.user
-    .getOrders({
-      // telling sequelize if u r fetching order
-      // also fetch related product
-      // and give back an array of orders that also
-      // include the products per order
-      include: ['products'],
-    })
-    .then((orders) => {
-      console.log(orders);
-      res.render('shop/orders', {
-        pageTitle: 'Your Orders',
-        path: '/orders',
-        orders: orders,
-      });
     })
     .catch((err) => console.log(err));
 };

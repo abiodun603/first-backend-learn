@@ -101,9 +101,18 @@ class User {
   addOrder() {
     const db = getDb();
 
-    return db
-      .collectio('orders')
-      .insertOne(this.cart)
+    return this.getCart()
+      .then((products) => {
+        const order = {
+          items: products,
+          user: {
+            _id: new ObjectId(this._id),
+            name: this.username,
+          },
+        };
+
+        return db.collection('orders').insertOne(order);
+      })
       .then((result) => {
         this.cart = { items: [] };
 
@@ -111,9 +120,23 @@ class User {
           .collection('users')
           .updateOne(
             { _id: new ObjectId(this._id) },
-            { $set: { cart: { items: updatedCartItems } } }
+            { $set: { cart: { items: [] } } }
           );
       });
+  }
+
+  getOrders() {
+    const db = getDb();
+    /**
+     * find can also accept a string
+     * in this case it pointing towards
+     * order.user._id
+     *
+     */
+    return db
+      .collection('orders')
+      .find({ 'user._id': new ObjectId(this._id) })
+      .toArray();
   }
 
   static findById(userId) {
