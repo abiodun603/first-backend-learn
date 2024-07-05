@@ -134,12 +134,10 @@ exports.getEditProduct = (req, res, next) => {
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
 
-  Product.deleteById(prodId)
+  Product.findByIdAndDelete(prodId)
     .then(() => {
       console.log('Product destroyed');
       res.redirect('/products');
     })
     .catch((err) => console.error(err));
-
-  res.redirect('/admin/products');
 };
