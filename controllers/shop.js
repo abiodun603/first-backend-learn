@@ -1,6 +1,6 @@
 const Product = require('../models/product');
 // const Cart = require('../models/cart');
-// const Order = require('../models/order');
+const Order = require('../models/order');
 
 exports.getIndex = (req, res, next) => {
   // find in mongoose works differently from in mongodb
@@ -62,35 +62,19 @@ exports.getProduct = (req, res, next) => {
 // Shop Cart
 exports.getCart = (req, res, next) => {
   req.user
-    .getCart()
-    .then((products) => {
-      console.log(products, 'PRODUCTS');
+    .populate('cart.items')
+    .then((user) => {
+      const products = user.cart.items;
       res.render('shop/cart', {
         pageTitle: 'Your Cart',
         path: '/cart',
         products: products,
       });
     })
-    .catch((err) => console.log(err));
-  // Cart.getCart((cart) => {
-  //   Product.fetchAll((products) => {
-  //     const cartProducts = [];
-  //     for (product of products) {
-  //       const cartProductData = cart.products.find(
-  //         (prod) => prod.id === product.id
-  //       );
-  //       if (cartProductData) {
-  //         cartProducts.push({ productData: product, qty: cartProductData.qty });
-  //       }
-  //     }
-  //     console.log(cartProducts);
-  //     res.render('shop/cart', {
-  //       pageTitle: 'Your Cart',
-  //       path: '/cart',
-  //       products: cartProducts,
-  //     });
-  //   });
-  // });
+    .catch((error) => {
+      console.error(error);
+      next(error); // Pass the error to the error handling middleware
+    });
 };
 
 exports.postCart = (req, res, next) => {
@@ -155,7 +139,25 @@ exports.getCheckout = (req, res, next) => {
 
 exports.postOrder = (req, res, next) => {
   req.user
-    .addOrder()
+    .populate('cart.items.productId')
+    .then((user) => {
+      const products = user.cart.items.map((i) => {
+        return {
+          quantity: i.quantity,
+          product: i.productId,
+        };
+      });
+
+      const order = new Order({
+        user: {
+          name: req.user.name,
+          userId: req.user,
+        },
+        products: products,
+      });
+
+      return order.save();
+    })
     .then(() => {
       res.redirect('/orders');
     })

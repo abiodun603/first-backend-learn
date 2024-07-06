@@ -20,7 +20,7 @@ const userSchema = new Schema({
           required: true,
         },
         quantity: {
-          type: String,
+          type: Number,
           required: true,
         },
       },
@@ -37,10 +37,10 @@ userSchema.methods.addToCart = function (product) {
   const updatedCartItems = [...this.cart.items];
 
   if (existingCartProductIndex >= 0) {
-    newQuantity = this.cart.items[existingCartProductIndex].quantity + 1;
-    updatedCartItems[existingCartProductIndex].quantity = newQuantity;
+    // newQuantity = this.cart.items[existingCartProductIndex].quantity + 1;
+    // updatedCartItems[existingCartProductIndex].quantity = newQuantity;
 
-    // updatedCartItems[existingCartProductIndex].quantity += 1;
+    updatedCartItems[existingCartProductIndex].quantity += 1;
   } else {
     updatedCartItems.push({
       productId: product._id,
@@ -53,6 +53,16 @@ userSchema.methods.addToCart = function (product) {
   };
 
   this.cart = updatedCart;
+
+  return this.save();
+};
+
+userSchema.methods.deleteItemFromCart = function (productId) {
+  const updatedCartItems = this.cart.items.filter((item) => {
+    return item.productId.toString() !== productId.toString();
+  });
+
+  this.cart.items = updatedCartItems;
 
   return this.save();
 };

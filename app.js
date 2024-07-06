@@ -20,15 +20,15 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use((req, res, next) => {
-  User.findById('668805e4880bc77690dd8ab9')
+  User.findById('6688192c9e07d70197377898') // Assuming this ID exists in your database
     .then((user) => {
-      console.log(user);
-      // new User allows to use method on the req.user
-      req.user = user;
-      // console.log(user);
-      next();
+      req.user = user; // Assign the fetched user document to req.user
+      next(); // Call next() to proceed to the next middleware or route handler
     })
-    .catch((error) => console.error(error));
+    .catch((error) => {
+      console.error(error);
+      next(error); // Pass the error to the error handling middleware
+    });
 });
 
 app.use('/admin', adminRoutes);
