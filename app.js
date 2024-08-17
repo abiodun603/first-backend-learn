@@ -3,43 +3,49 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const session = require('express-session');
+const MongoDBStore = require('connect-mongodb-session')(session);
 
 const errorController = require('./controllers/error');
 
 const User = require('./models/user');
+
+const MONGODBO_URI =
+  'mongodb+srv://abiodun_mastery:Testing123@cluster0.jupgc1f.mongodb.net/shop';
 const app = express();
+const store = new MongoDBStore({
+  uri: MONGODBO_URI,
+  collection: 'sessions',
+});
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
+const authRoutes = require('./routes/auth');
 const errorRoutes = require('./routes/error');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.use((req, res, next) => {
-  User.findById('6688192c9e07d70197377898') // Assuming this ID exists in your database
-    .then((user) => {
-      req.user = user; // Assign the fetched user document to req.user
-      next(); // Call next() to proceed to the next middleware or route handler
-    })
-    .catch((error) => {
-      console.error(error);
-      next(error); // Pass the error to the error handling middleware
-    });
-});
+app.use(
+  session({
+    secret: 'my secret',
+    resave: false, // this means that the session will not be saved on every request
+    saveUninitialized: false, // ensure that no session get saved for a request, where it doesn't need to be saved
+    store: store,
+  })
+);
+// app.use((req, res, next) => {});
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
+app.use(authRoutes);
 
 app.use(errorController.error);
 
 mongoose
-  .connect(
-    'mongodb+srv://abiodun_mastery:Testing123@cluster0.jupgc1f.mongodb.net/shop?retryWrites=true&w=majority&appName=Cluster0'
-  )
+  .connect(MONGODBO_URI)
   .then(() => {
     User.findOne().then((user) => {
       if (!user) {

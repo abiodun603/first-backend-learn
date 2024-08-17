@@ -12,11 +12,13 @@ exports.getAddProduct = (req, res, next) => {
     formsCSS: true,
     productCSS: true,
     activeAddProduct: true,
+    isAuthenticated: req.session.isLoggedIn,
   });
 };
 
 // getAdminProduct
 exports.getAdminProducts = (req, res, next) => {
+  console.log(req.session.isLoggedIn);
   // get only currenltly logged in user productts
   // req.user
   //   .getProducts()
@@ -38,6 +40,7 @@ exports.getAdminProducts = (req, res, next) => {
         prods: products,
         pageTitle: 'Admin Products',
         path: '/admin/products',
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));
@@ -49,13 +52,13 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  console.log(req.user, 'Hello');
   const product = new Product({
     title: title,
     price: price,
     description: description,
     imageUrl: imageUrl,
-    userId: req.user,
+    userId: req.session.user,
+    isAuthenticated: req.session.isLoggedIn,
   });
 
   product

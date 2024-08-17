@@ -3,15 +3,19 @@ const Product = require('../models/product');
 const Order = require('../models/order');
 
 exports.getIndex = (req, res, next) => {
+  // console.log(req.session.user);
   // find in mongoose works differently from in mongodb
+
   // git fetch all data for us if it doesn't exist
   // accept any data
+  console.log(req.session.isLoggedIn);
   Product.find()
     .then((products) => {
       res.render('shop/index', {
         prods: products,
         pageTitle: 'Shop',
         path: '/',
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => {
@@ -28,6 +32,7 @@ exports.getProducts = (req, res, next) => {
         prods: products,
         pageTitle: 'All Products',
         path: '/products',
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => {
@@ -44,6 +49,7 @@ exports.getProduct = (req, res, next) => {
         product: products,
         pageTitle: products.title,
         path: '/products',
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));
@@ -61,7 +67,7 @@ exports.getProduct = (req, res, next) => {
 
 // Shop Cart
 exports.getCart = (req, res, next) => {
-  req.user
+  req.session.user
     .populate('cart.items')
     .then((user) => {
       const products = user.cart.items;
@@ -69,6 +75,7 @@ exports.getCart = (req, res, next) => {
         pageTitle: 'Your Cart',
         path: '/cart',
         products: products,
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((error) => {
@@ -82,7 +89,7 @@ exports.postCart = (req, res, next) => {
 
   Product.findById(prodId)
     .then((product) => {
-      return req.user.addToCart(product);
+      return req.session.user.addToCart(product);
     })
     .then((result) => {
       res.redirect('/cart');
@@ -138,25 +145,29 @@ exports.getCheckout = (req, res, next) => {
 };
 
 exports.postOrder = (req, res, next) => {
-  req.user
+  req.session.user
     .populate('cart.items.productId')
     .then((user) => {
       const products = user.cart.items.map((i) => {
+        //_doc on a object mongoose gives us to get all the details on the productId
         return {
           quantity: i.quantity,
-          product: i.productId,
+          product: { ...i.productId._doc },
         };
       });
 
       const order = new Order({
         user: {
-          name: req.user.name,
-          userId: req.user,
+          name: req.session.user.name,
+          userId: req.session.user,
         },
         products: products,
       });
 
       return order.save();
+    })
+    .then(() => {
+      req.session.user.clearCart();
     })
     .then(() => {
       res.redirect('/orders');
@@ -168,10 +179,8 @@ exports.postOrder = (req, res, next) => {
 
 // Shop Orders
 exports.getOrders = (req, res, next) => {
-  req.user
-    .getOrders()
+  Order.find({ 'user.userId': req.session.user._id })
     .then((orders) => {
-      console.log(orders);
       res.render('shop/orders', {
         pageTitle: 'Your Orders',
         path: '/orders',
@@ -184,7 +193,7 @@ exports.getOrders = (req, res, next) => {
 exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
 
-  req.user
+  req.session.user
     .deleteItemFromCart(prodId)
     .then(() => {
       res.redirect('/cart');

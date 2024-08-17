@@ -37,9 +37,6 @@ userSchema.methods.addToCart = function (product) {
   const updatedCartItems = [...this.cart.items];
 
   if (existingCartProductIndex >= 0) {
-    // newQuantity = this.cart.items[existingCartProductIndex].quantity + 1;
-    // updatedCartItems[existingCartProductIndex].quantity = newQuantity;
-
     updatedCartItems[existingCartProductIndex].quantity += 1;
   } else {
     updatedCartItems.push({
@@ -63,6 +60,14 @@ userSchema.methods.deleteItemFromCart = function (productId) {
   });
 
   this.cart.items = updatedCartItems;
+
+  return this.save();
+};
+
+userSchema.methods.clearCart = function () {
+  this.cart = {
+    items: [],
+  };
 
   return this.save();
 };
