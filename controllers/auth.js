@@ -44,6 +44,7 @@ exports.postLogin = async (req, res, next) => {
       // Redirect to homepage after successful login
       return res.redirect('/');
     } else {
+      req.flash('error', 'Invalid email or password. ');
       // Password did not match
       return res.redirect('/login'); // If the password is incorrect, redirect to login
     }
@@ -68,9 +69,16 @@ exports.postLogout = (req, res, next) => {
 };
 
 exports.getSignup = (req, res) => {
+  let message = req.flash('error');
+  if (message.length > 0) {
+    message = message[0];
+  } else {
+    message = null;
+  }
   res.render('auth/signup', {
     path: '/signup',
     pageTitle: 'Signup',
+    errorMessage: message,
   });
 };
 
@@ -82,6 +90,7 @@ exports.postSignup = (req, res, next) => {
   User.findOne({ email: email })
     .then((userDoc) => {
       if (userDoc) {
+        req.flash('error', 'Email already exit, please pick a different one. ');
         return res.redirect('/signup');
       }
       return bcrypt
