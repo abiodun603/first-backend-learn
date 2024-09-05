@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
+const csrf = require('csurf');
 
 const errorController = require('./controllers/error');
 
@@ -17,6 +18,15 @@ const store = new MongoDBStore({
   uri: MONGODBO_URI,
   collection: 'sessions',
 });
+
+/* 
+  initialize crsf as a function,
+ we can also pass the secret that is use for assigning our token,
+ also for hashing them we want to store them in a cookie instead of the session which is the default
+ but we want to use the session, ad the default, 
+ and we also don't need to set any of the values
+*/
+const csrfProtection = csrf();
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
@@ -36,6 +46,9 @@ app.use(
     store: store,
   })
 );
+
+app.use(csrfProtection);
+
 app.use((req, res, next) => {
   if (req.session.user) {
     return next();
