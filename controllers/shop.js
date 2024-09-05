@@ -68,8 +68,8 @@ exports.getProduct = (req, res, next) => {
 
 // Shop Cart
 exports.getCart = (req, res, next) => {
-  req.session.user
-    .populate('cart.items')
+  req.user
+    .populate('cart.items.productId')
     .then((user) => {
       const products = user.cart.items;
       res.render('shop/cart', {
@@ -159,8 +159,8 @@ exports.postOrder = (req, res, next) => {
 
       const order = new Order({
         user: {
-          name: req.session.user.name,
-          userId: req.session.user,
+          email: req.user.email,
+          userId: req.user,
         },
         products: products,
       });
@@ -168,7 +168,7 @@ exports.postOrder = (req, res, next) => {
       return order.save();
     })
     .then(() => {
-      req.session.user.clearCart();
+      req.user.clearCart();
     })
     .then(() => {
       res.redirect('/orders');

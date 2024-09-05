@@ -50,7 +50,7 @@ app.use(
 app.use(csrfProtection);
 
 app.use((req, res, next) => {
-  if (req.session.user) {
+  if (!req.session.user) {
     return next();
   }
   User.findById(req?.session?.user?._id)
