@@ -56,19 +56,5 @@ app.use(errorController.error);
 
 mongoose
   .connect(MONGODBO_URI)
-  .then(() => {
-    User.findOne().then((user) => {
-      if (!user) {
-        const user = new User({
-          name: 'Abiodun',
-          email: 'abiodun@test.com',
-          cart: {
-            items: [],
-          },
-        });
-        user.save();
-      }
-    });
-  })
   .then(() => app.listen(3000))
   .catch((err) => console.log(err));

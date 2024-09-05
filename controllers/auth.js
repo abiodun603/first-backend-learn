@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 
 exports.getLogin = (req, res, next) => {
@@ -9,23 +10,36 @@ exports.getLogin = (req, res, next) => {
 };
 
 exports.postLogin = async (req, res, next) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  console.log(email);
   try {
     // Find the user by ID
-    const user = await User.findById('6688192c9e07d70197377898'); // Assuming this ID exists in your database
+    const user = await User.findOne({ email: email }); // Assuming this ID exists in your database
 
     if (!user) {
+      console.log('no user found');
       return res.redirect('/login'); // If the user is not found, redirect to login page
     }
 
-    // Set session properties
-    req.session.isLoggedIn = true;
-    req.session.user = user; // Assign the fetched user document to req.session.user
+    // Compare the password
+    const doMatch = await bcrypt.compare(password, user.password);
 
-    // Save the session
-    await req.session.save(); // No callback, just await the promise
+    if (doMatch) {
+      // Set session properties
+      req.session.isLoggedIn = true;
+      req.session.user = user; // Assign the fetched user document to req.session.user
 
-    // Redirect after session is saved
-    res.redirect('/');
+      // Save the session
+      await req.session.save();
+
+      // Redirect to homepage after successful login
+      return res.redirect('/');
+    } else {
+      // Password did not match
+      return res.redirect('/login'); // If the password is incorrect, redirect to login
+    }
   } catch (error) {
     console.error(error);
     next(error); // Pass the error to the error-handling middleware
@@ -54,4 +68,31 @@ exports.getSignup = (req, res) => {
   });
 };
 
-exports.postSignup = (req, res, next) => {};
+exports.postSignup = (req, res, next) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const confirmPassword = req.body.confirmPassword;
+
+  User.findOne({ email: email })
+    .then((userDoc) => {
+      if (userDoc) {
+        return res.redirect('/signup');
+      }
+      return bcrypt
+        .hash(password, 12)
+        .then((hashedPassword) => {
+          const user = new User({
+            email: email,
+            password: hashedPassword,
+            cart: { items: [] },
+          });
+          return user.save();
+        })
+        .then((result) => {
+          res.redirect('/login');
+        });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
