@@ -5,7 +5,7 @@ exports.getLogin = (req, res, next) => {
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
-    isAuthenticated: req.session.isLoggedIn,
+    errorMessage: req.flash('error'),
   });
 };
 
@@ -20,6 +20,7 @@ exports.postLogin = async (req, res, next) => {
 
     if (!user) {
       console.log('no user found');
+      req.flash('error', 'Invalid email or password. ');
       return res.redirect('/login'); // If the user is not found, redirect to login page
     }
 
@@ -64,7 +65,6 @@ exports.getSignup = (req, res) => {
   res.render('auth/signup', {
     path: '/signup',
     pageTitle: 'Signup',
-    isAuthenticated: false,
   });
 };
 
