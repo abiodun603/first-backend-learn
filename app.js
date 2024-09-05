@@ -61,6 +61,26 @@ app.use((req, res, next) => {
     .catch((err) => console.error(err));
 });
 
+/**
+ * inside of use passing isAuthenticated to all our render
+ * i.e  res.render('shop/orders', {
+        pageTitle: 'Your Orders',
+        path: '/orders',
+        orders: orders,
+        isAuthenticated: req.session.isLoggedIn,
+      });
+
+  we want to look for a way to tell express 
+  that we have some data that show be included in every rendered view
+ */
+
+app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+
+  next();
+});
+
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
