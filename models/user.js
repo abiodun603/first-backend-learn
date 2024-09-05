@@ -30,7 +30,7 @@ const userSchema = new Schema({
 
 userSchema.methods.addToCart = function (product) {
   const existingCartProductIndex = this.cart.items.findIndex((cp) => {
-    return cp.productId.toString() === product._id.toString();
+    return cp.productId.toString() === product?._id.toString();
   });
 
   let newQuantity = 1;
@@ -40,7 +40,7 @@ userSchema.methods.addToCart = function (product) {
     updatedCartItems[existingCartProductIndex].quantity += 1;
   } else {
     updatedCartItems.push({
-      productId: product._id,
+      productId: product?._id,
       quantity: newQuantity,
     });
   }

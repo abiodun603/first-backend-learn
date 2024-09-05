@@ -3,7 +3,7 @@ const Product = require('../models/product');
 const Order = require('../models/order');
 
 exports.getIndex = (req, res, next) => {
-  // console.log(req.user);
+  // console.log(req.session.user);
   // find in mongoose works differently from in mongodb
 
   // git fetch all data for us if it doesn't exist
@@ -67,7 +67,7 @@ exports.getProduct = (req, res, next) => {
 
 // Shop Cart
 exports.getCart = (req, res, next) => {
-  req.user
+  req.session.user
     .populate('cart.items')
     .then((user) => {
       const products = user.cart.items;
@@ -158,8 +158,8 @@ exports.postOrder = (req, res, next) => {
 
       const order = new Order({
         user: {
-          name: req.user.name,
-          userId: req.user,
+          name: req.session.user.name,
+          userId: req.session.user,
         },
         products: products,
       });
@@ -167,7 +167,7 @@ exports.postOrder = (req, res, next) => {
       return order.save();
     })
     .then(() => {
-      req.user.clearCart();
+      req.session.user.clearCart();
     })
     .then(() => {
       res.redirect('/orders');
@@ -179,7 +179,7 @@ exports.postOrder = (req, res, next) => {
 
 // Shop Orders
 exports.getOrders = (req, res, next) => {
-  Order.find({ 'user.userId': req.user._id })
+  Order.find({ 'user.userId': req.session?.user?._id })
     .then((orders) => {
       res.render('shop/orders', {
         pageTitle: 'Your Orders',
@@ -194,7 +194,7 @@ exports.getOrders = (req, res, next) => {
 exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
 
-  req.user
+  req.session.user
     .deleteItemFromCart(prodId)
     .then(() => {
       res.redirect('/cart');
