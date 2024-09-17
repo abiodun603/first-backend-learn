@@ -7,10 +7,18 @@ const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const csrf = require('csurf');
 const flash = require('connect-flash');
+const nodemailer = require('nodemailer');
+const sendgridTrasport = require('nodemailer-sendgrid-transport');
+
 const errorController = require('./controllers/error');
 
 const User = require('./models/user');
-
+// const transport = nodemailer.createTransport(sendgridTrasport({
+//   auth: {
+//     api_user: '',
+//     api_key:
+//   }
+// }));
 const MONGODBO_URI =
   'mongodb+srv://abiodun_mastery:Testing123@cluster0.jupgc1f.mongodb.net/shop';
 const app = express();
