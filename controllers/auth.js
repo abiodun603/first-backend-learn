@@ -2,7 +2,7 @@ const crypto = require('crypto');
 
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
-
+const { validationResult } = require('express-validator');
 exports.getLogin = (req, res, next) => {
   let message = req.flash('error');
   if (message.length > 0) {
@@ -89,6 +89,16 @@ exports.postSignup = (req, res, next) => {
   const password = req.body.password;
   const confirmPassword = req.body.confirmPassword;
 
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    console.log(errors.array());
+    return res.status(422).render('auth/signup', {
+      path: '/signup',
+      pageTitle: 'Signup',
+      errorMessage: errors.array()[0].msg,
+    });
+  }
   User.findOne({ email: email })
     .then((userDoc) => {
       if (userDoc) {
@@ -180,9 +190,40 @@ exports.getNewPassword = (req, res) => {
         pageTitle: 'New Password',
         errorMessage: message,
         userId: user._id.toString(),
+        passwordToken: token,
       });
     })
     .catch((err) => {
       console.log(err);
+    });
+};
+
+exports.postNewPassword = (req, res) => {
+  const newPassword = req.body.password;
+  const userId = req.body.userId;
+  const passwordToken = req.body.passwordToken;
+  console.log(newPassword, passwordToken, userId);
+  // return res.redirect('/reset');
+  User.findOne({
+    resetToken: passwordToken,
+    resetTokenExpiration: { $gt: new Date() },
+    _id: userId,
+  })
+    .then((user) => {
+      resetUser = user;
+      return bcrypt.hash(newPassword, 123);
+    })
+    .then((hashedPassword) => {
+      resetUser.password = hashedPassword;
+      resetUser.resetToken = undefined;
+      resetUser.resetTokenExpiration = undefined;
+
+      return resetUser.save();
+    })
+    .then((result) => {
+      return res.redirect('/login');
+    })
+    .catch((err) => {
+      console.error(err);
     });
 };
