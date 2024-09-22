@@ -21,7 +21,16 @@ exports.postLogin = async (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
 
-  console.log(email);
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.render('auth/login', {
+      path: '/login',
+      pageTitle: 'Login',
+      errorMessage: errors.array()[0].msg,
+    });
+  }
+
   try {
     // Find the user by ID
     const user = await User.findOne({ email: email }); // Assuming this ID exists in your database
@@ -87,7 +96,6 @@ exports.getSignup = (req, res) => {
 exports.postSignup = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
-  const confirmPassword = req.body.confirmPassword;
 
   const errors = validationResult(req);
 
@@ -99,25 +107,18 @@ exports.postSignup = (req, res, next) => {
       errorMessage: errors.array()[0].msg,
     });
   }
-  User.findOne({ email: email })
-    .then((userDoc) => {
-      if (userDoc) {
-        req.flash('error', 'Email already exit, please pick a different one. ');
-        return res.redirect('/signup');
-      }
-      return bcrypt
-        .hash(password, 12)
-        .then((hashedPassword) => {
-          const user = new User({
-            email: email,
-            password: hashedPassword,
-            cart: { items: [] },
-          });
-          return user.save();
-        })
-        .then((result) => {
-          res.redirect('/login');
-        });
+  bcrypt
+    .hash(password, 12)
+    .then((hashedPassword) => {
+      const user = new User({
+        email: email,
+        password: hashedPassword,
+        cart: { items: [] },
+      });
+      return user.save();
+    })
+    .then((result) => {
+      res.redirect('/login');
     })
     .catch((err) => {
       console.log(err);
