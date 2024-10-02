@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const { validationResult } = require('express-validator');
+
 exports.getLogin = (req, res, next) => {
   let message = req.flash('error');
   if (message.length > 0) {
@@ -14,6 +15,11 @@ exports.getLogin = (req, res, next) => {
     path: '/login',
     pageTitle: 'Login',
     errorMessage: message,
+    oldInput: {
+      email: '',
+      password: '',
+    },
+    validationErrors: [],
   });
 };
 
@@ -24,10 +30,15 @@ exports.postLogin = async (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res.render('auth/login', {
+    return res.status(422).render('auth/login', {
       path: '/login',
       pageTitle: 'Login',
       errorMessage: errors.array()[0].msg,
+      oldInput: {
+        email: email,
+        password: password,
+      },
+      validationErrors: errors.array(),
     });
   }
 
@@ -37,8 +48,16 @@ exports.postLogin = async (req, res, next) => {
 
     if (!user) {
       console.log('no user found');
-      req.flash('error', 'Invalid email or password. ');
-      return res.redirect('/login'); // If the user is not found, redirect to login page
+      return res.status(422).render('auth/login', {
+        path: '/login',
+        pageTitle: 'Login',
+        errorMessage: 'Invalid email or password.',
+        oldInput: {
+          email: email,
+          password: password,
+        },
+        validationErrors: [],
+      }); // If the user is not found, redirect to login page
     }
 
     // Compare the password
@@ -57,7 +76,16 @@ exports.postLogin = async (req, res, next) => {
     } else {
       req.flash('error', 'Invalid email or password. ');
       // Password did not match
-      return res.redirect('/login'); // If the password is incorrect, redirect to login
+      return res.status(422).render('auth/login', {
+        path: '/login',
+        pageTitle: 'Login',
+        errorMessage: 'Invalid email or password.',
+        oldInput: {
+          email: email,
+          password: password,
+        },
+        validationErrors: [],
+      }); // // If the password is incorrect, redirect to login
     }
   } catch (error) {
     console.error(error);
@@ -90,6 +118,12 @@ exports.getSignup = (req, res) => {
     path: '/signup',
     pageTitle: 'Signup',
     errorMessage: message,
+    oldInput: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+    validationErrors: [],
   });
 };
 
@@ -105,6 +139,12 @@ exports.postSignup = (req, res, next) => {
       path: '/signup',
       pageTitle: 'Signup',
       errorMessage: errors.array()[0].msg,
+      oldInput: {
+        email: email,
+        password: password,
+        confirmPassword: req.body.confirmPassword,
+      },
+      validationErrors: errors.array(),
     });
   }
   bcrypt
