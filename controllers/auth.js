@@ -45,7 +45,7 @@ exports.postLogin = async (req, res, next) => {
   try {
     // Find the user by ID
     const user = await User.findOne({ email: email }); // Assuming this ID exists in your database
-
+    // console.log(user);
     if (!user) {
       console.log('no user found');
       return res.status(422).render('auth/login', {
@@ -62,8 +62,9 @@ exports.postLogin = async (req, res, next) => {
 
     // Compare the password
     const doMatch = await bcrypt.compare(password, user.password);
-
+    console.log(doMatch);
     if (doMatch) {
+      console;
       // Set session properties
       req.session.isLoggedIn = true;
       req.session.user = user; // Assign the fetched user document to req.session.user
@@ -130,8 +131,8 @@ exports.getSignup = (req, res) => {
 exports.postSignup = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
-
   const errors = validationResult(req);
+  console.log(email, password, errors);
 
   if (!errors.isEmpty()) {
     console.log(errors.array());
