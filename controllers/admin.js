@@ -46,7 +46,11 @@ exports.getAdminProducts = (req, res, next) => {
         isAuthenticated: req.session.isLoggedIn,
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
 
 // Handle Product Request
@@ -155,7 +159,11 @@ exports.postEditProduct = (req, res, next) => {
         res.redirect('/admin/products');
       });
     })
-    .catch((error) => console.log(error));
+    .catch((error) => {
+      const error = new Error(error);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
 
 // Edit product page
@@ -180,7 +188,11 @@ exports.getEditProduct = (req, res, next) => {
         errorMessage: null,
       });
     })
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 
   // // edit product that related to what the current loggin user posted
   // req.user
@@ -212,5 +224,9 @@ exports.postDeleteProduct = (req, res, next) => {
       console.log('Product destroyed');
       res.redirect('/products');
     })
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
